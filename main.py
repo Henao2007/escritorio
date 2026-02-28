@@ -2,8 +2,8 @@ import flet as ft
 
 from views.login import login_view
 from views.register import register_view
-from views.layout import app_layout
-
+from layout import app_layout
+from config.conexion import conectar
 
 def main(page: ft.Page):
     page.title = "SenaFood - Admin"
@@ -32,6 +32,20 @@ def main(page: ft.Page):
         show_app()
     else:
         show_login()
+
+
+# comprobar BD
+# def main(page: ft.Page):
+#     # Intentamos conectar usando la función de conexion.py
+#     conn = conectar()
+
+#     if conn:
+#             page.add(ft.Text("¡Conexión exitosa!"))
+#             conn.close()  # cerramos la conexión después
+#     else:
+#             page.add(ft.Text("Error al conectar a la base de datos"))
+
+
 
 
 ft.run(main, assets_dir="assets")

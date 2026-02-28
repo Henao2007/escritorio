@@ -1,9 +1,14 @@
 import flet as ft
 
-def dashboard_view():
+
+def dashboard_view(page: ft.Page):
     return ft.Container(
-        content=ft.Column([
-            ft.Text("Dashboard", size=30, weight=ft.FontWeight.BOLD),
-            ft.Text("Bienvenido al panel de control de SenaFood"),
-        ])
+        expand=True,
+        padding=20,
+        content=ft.Column(
+            controls=[
+                ft.Text("Dashboard"),
+                ft.Text(f"Bienvenido, {page.session.user}"),
+            ]
+        ),
     )

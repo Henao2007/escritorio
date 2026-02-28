@@ -1,9 +1,14 @@
 import flet as ft
 
-def productos_view():
+
+def productos_view(page: ft.Page):
     return ft.Container(
-        content=ft.Column([
-            ft.Text("Productos", size=30, weight=ft.FontWeight.BOLD),
-            ft.Text("Gestión de productos del menú"),
-        ])
+        expand=True,
+        padding=20,
+        content=ft.Column(
+            controls=[
+                ft.Text("Productos", size=28, weight="bold"),
+                ft.Text("Gestión de productos del menú"),
+            ]
+        ),
     )
