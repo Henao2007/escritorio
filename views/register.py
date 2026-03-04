@@ -82,7 +82,7 @@ def register_view(page, go_login):
     return ft.Container(
         expand=True,
         bgcolor="#FAF7F2",
-        padding=ft.padding.symmetric(horizontal=20),
+        padding=ft.Padding.symmetric(horizontal=20),
         content=ft.Column(
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             alignment=ft.MainAxisAlignment.CENTER,
@@ -111,7 +111,7 @@ def register_view(page, go_login):
                 # Formulario
                 ft.Container(
                     width=400,
-                    padding=ft.padding.all(30),
+                    padding=ft.Padding.all(30),
                     bgcolor="white",
                     border_radius=15,
                     content=ft.Column(
@@ -160,8 +160,8 @@ def register_view(page, go_login):
                             # Botón
                             ft.Container(
                                 width=350,
-                                margin=ft.margin.only(top=10),
-                                content=ft.ElevatedButton(
+                                margin=ft.Margin.only(top=10),
+                                content=ft.Button(
                                     "REGISTRARME",
                                     width=350,
                                     height=48,
@@ -176,7 +176,7 @@ def register_view(page, go_login):
                             
                             # Enlace
                             ft.Container(
-                                margin=ft.margin.only(top=15),
+                                margin=ft.Margin.only(top=15),
                                 content=ft.TextButton(
                                     "¿Ya tienes cuenta? Inicia sesión",
                                     style=ft.ButtonStyle(
