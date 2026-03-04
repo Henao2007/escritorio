@@ -24,7 +24,7 @@ def main(page: ft.Page):
 
     def logout():
         if hasattr(page.session, "user"):
-            del page.session.user
+            delattr(page.session, "user")
         show_login()
 
     # 🔐 CONTROL DE SESIÓN (CORRECTO)

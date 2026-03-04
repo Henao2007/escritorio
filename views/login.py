@@ -1,18 +1,22 @@
 import flet as ft
+from controllers.login import AdminController
 
 
 def login_view(page, go_register, go_dashboard):
-    """Vista de inicio de sesión principal para escritorio.
+    """Vista de inicio de sesión principal para escritorio."""
 
-    Usa el diseño moderno del proyecto `escritorio-login`, pero mantiene
-    el flujo actual: al autenticarse se navega directamente al dashboard
-    principal de `escritorio-Proyecto`.
-    """
+    controller = AdminController()
 
+    # Texto para mostrar errores de login
+    error_text = ft.Text("", size=12, color="red")
+
+    # ----------------------------
     # Campos de formulario
+    # ----------------------------
+
     email = ft.TextField(
-        label="Usuario",
-        hint_text="Ingresa tu usuario",
+        label="Correo",
+        hint_text="Ingresa tu correo",
         border=ft.InputBorder.UNDERLINE,
         border_color="#E5E7EB",
         filled=True,
@@ -42,34 +46,29 @@ def login_view(page, go_register, go_dashboard):
         height=50,
     )
 
+    # ----------------------------
+    # Función Login (MVC real)
+    # ----------------------------
+
     def login(e):
-        # Validación mínima: solo comprobamos que haya valores
-        if email.value and password.value:
-            page.session.user = email.value
+        usuario = email.value
+        clave = password.value
+
+        resultado = controller.login(usuario, clave)
+
+        if resultado["status"] == "success":
+            # Flet session es un objeto; guardamos un atributo
+            setattr(page.session, "user", usuario)
             go_dashboard()
+        else:
+            # Mostrar mensaje de error debajo de "Ingresa tus credenciales"
+            error_text.value = "Correo o contraseña incorrectos"
+            page.update()
 
-    # Tarjeta de credenciales de demostración
-    # demo_credentials = ft.Container(
-    #     width=320,
-    #     padding=15,
-    #     bgcolor="#F9FAFB",
-    #     border_radius=10,
-    #     content=ft.Column(
-    #         spacing=4,
-    #         controls=[
-    #             ft.Text(
-    #                 "Credenciales de demostración:",
-    #                 size=13,
-    #                 weight=ft.FontWeight.BOLD,
-    #                 color="#374151",
-    #             ),
-    #             ft.Text("Usuario: admin", size=12, color="#4B5563"),
-    #             ft.Text("Contraseña: sena2024", size=12, color="#4B5563"),
-    #         ],
-    #     ),
-    # )
+    # ----------------------------
+    # Lado izquierdo
+    # ----------------------------
 
-    # Lado izquierdo: tarjeta con el logo (se mantiene mismo archivo de logo)
     left_side = ft.Container(
         expand=True,
         bgcolor="#FFF9E6",
@@ -92,7 +91,6 @@ def login_view(page, go_register, go_dashboard):
                     ),
                     alignment=ft.Alignment(0, 0),
                     content=ft.Image(
-                        # Se usa el mismo logo principal del proyecto
                         src="img/logo.png",
                         width=160,
                         height=160,
@@ -109,13 +107,15 @@ def login_view(page, go_register, go_dashboard):
                     "ADMIN",
                     size=16,
                     color="#9CA3AF",
-                    weight=ft.FontWeight.NORMAL,
                 ),
             ],
         ),
     )
 
-    # Lado derecho: formulario de inicio de sesión
+    # ----------------------------
+    # Lado derecho (Formulario)
+    # ----------------------------
+
     right_side = ft.Container(
         expand=True,
         bgcolor="#F3F4F6",
@@ -127,7 +127,7 @@ def login_view(page, go_register, go_dashboard):
             controls=[
                 ft.Container(
                     width=420,
-                    padding=ft.Padding.all(30),
+                    padding=30,
                     bgcolor="white",
                     border_radius=20,
                     shadow=ft.BoxShadow(
@@ -155,10 +155,11 @@ def login_view(page, go_register, go_dashboard):
                                 spacing=15,
                                 controls=[email, password],
                             ),
+                            error_text,
                             ft.Container(
                                 width=320,
-                                margin=ft.Margin.only(top=10),
-                                content=ft.Button(
+                                margin=ft.margin.only(top=10),
+                                content=ft.ElevatedButton(
                                     "Continuar",
                                     width=320,
                                     height=48,
@@ -172,7 +173,6 @@ def login_view(page, go_register, go_dashboard):
                                     on_click=login,
                                 ),
                             ),
-                           
                         ],
                     ),
                 ),
@@ -185,7 +185,10 @@ def login_view(page, go_register, go_dashboard):
         ),
     )
 
-    # Contenedor principal con diseño responsivo simple
+    # ----------------------------
+    # Vista principal
+    # ----------------------------
+
     return ft.Container(
         expand=True,
         bgcolor="#FDFBF5",
