@@ -46,7 +46,8 @@ def token_view(page: ft.Page):
         }
     ]
 
-    recent_list_ref = ft.Ref[ft.Column]()
+    # ✅ CAMBIO: Ref ahora apunta a ft.Row en lugar de ft.Column
+    recent_list_ref = ft.Ref[ft.Row]()
     pending_row_ref = ft.Ref[ft.Row]()
     pending_title_ref = ft.Ref[ft.Text]()
 
@@ -424,9 +425,12 @@ def token_view(page: ft.Page):
                             weight="bold",
                             color=COLOR_GRAY_MEDIUM,
                         ),
-                        ft.Column(
+                        # ✅ CAMBIO: ft.Column → ft.Row con wrap=True
+                        ft.Row(
                             ref=recent_list_ref,
+                            wrap=True,
                             spacing=12,
+                            run_spacing=12,
                             controls=[
                                 token_card(
                                     token_id=t["token_id"],
@@ -460,6 +464,7 @@ def token_view(page: ft.Page):
                             ref=pending_row_ref,
                             wrap=True,
                             spacing=20,
+                            run_spacing=12,
                             controls=[
                                 token_card(
                                     token_id=t["token_id"],

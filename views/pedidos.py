@@ -26,11 +26,9 @@ SAMPLE_ORDERS = [
 
 
 def pedidos_view(page: ft.Page):
-    # ── Search state y capa modal ────────────────────────────────────────────
     rows_col = ft.Ref[ft.Column]()
     modal_layer = ft.Ref[ft.Stack]()
 
-    # Modelo de datos mutable para poder actualizar el estado
     orders = [
         {
             "order_id": o[0],
@@ -48,14 +46,12 @@ def pedidos_view(page: ft.Page):
 
     search_state = {"value": ""}
 
-    # ── Modal de detalle de pedido ──────────────────────────────────────────
     def close_modal(e=None):
         if modal_layer.current and len(modal_layer.current.controls) > 1:
             modal_layer.current.controls = modal_layer.current.controls[:1]
             modal_layer.current.update()
 
     def _order_detail_modal(order: dict, on_confirm=None):
-        # Datos de ejemplo para el producto del pedido
         product_name = "Almuerzo Especial Pollo (x1)"
         product_img = "img/comida1.jpg"
         payment_method = "Nequi"
@@ -244,9 +240,7 @@ def pedidos_view(page: ft.Page):
                                                         ft.Container(
                                                             bgcolor=status_color_bg,
                                                             border_radius=20,
-                                                            padding=ft.Padding(
-                                                                12, 4, 12, 4
-                                                            ),
+                                                            padding=ft.Padding(12, 4, 12, 4),
                                                             content=ft.Row(
                                                                 spacing=6,
                                                                 controls=[
@@ -328,15 +322,12 @@ def pedidos_view(page: ft.Page):
         )
 
     def update_order_status(order_id: str, new_status: str):
-        """Actualiza el estado en el modelo y reconstruye las filas."""
         for o in orders:
             if o["order_id"] == order_id:
                 o["status"] = new_status
-                # Una vez completado, ya no se muestra el botón verde
                 if new_status == "Completado":
                     o["show_complete"] = False
                 break
-        # Reconstruir la tabla respetando el filtro actual
         rows_col.current.controls = build_rows(search_state["value"])
         rows_col.current.update()
 
@@ -366,10 +357,7 @@ def pedidos_view(page: ft.Page):
 
         rows = []
         for o in filtered:
-            order_dict = dict(o)  # copia ligera para pasar al modal
-
-            def make_on_view(data=order_dict):
-                return lambda _e=None: show_detail(data)
+            order_dict = dict(o)
 
             def make_on_status_change(oid=o["order_id"]):
                 return lambda _new_status: update_order_status(oid, _new_status)
@@ -398,18 +386,17 @@ def pedidos_view(page: ft.Page):
         rows_col.current.update()
 
     # ── Stats row ────────────────────────────────────────────────────────────
+    # ✅ CAMBIO: quitado expand=True para que no consuma espacio extra
     stats_row = ft.Row(
         spacing=16,
-        expand=True,
         controls=[
-            order_stat_box("Pendientes",  "1",  ft.Icons.SCHEDULE_OUTLINED,         COLOR_ORANGE_PRIMARY),
-            order_stat_box("Confirmados", "0",  ft.Icons.CHECK_CIRCLE_OUTLINE,      COLOR_BLUE_INFO),
-            order_stat_box("Completados", "1",  ft.Icons.CHECK_CIRCLE_ROUNDED,      COLOR_GREEN_SUCCESS),
-            order_stat_box("Cancelados",  "1",  ft.Icons.CANCEL_OUTLINED,           COLOR_RED_ERROR),
+            order_stat_box("Pendientes",  "1", ft.Icons.SCHEDULE_OUTLINED,    COLOR_ORANGE_PRIMARY),
+            order_stat_box("Confirmados", "0", ft.Icons.CHECK_CIRCLE_OUTLINE, COLOR_BLUE_INFO),
+            order_stat_box("Completados", "1", ft.Icons.CHECK_CIRCLE_ROUNDED, COLOR_GREEN_SUCCESS),
+            order_stat_box("Cancelados",  "1", ft.Icons.CANCEL_OUTLINED,      COLOR_RED_ERROR),
         ],
     )
 
-    # ── Table header ─────────────────────────────────────────────────────────
     def header_cell(label, width):
         return ft.Container(
             width=width,
@@ -434,7 +421,6 @@ def pedidos_view(page: ft.Page):
         ),
     )
 
-    # ── Orders table ─────────────────────────────────────────────────────────
     orders_table = ft.Container(
         expand=True,
         bgcolor=COLOR_WHITE,
@@ -453,14 +439,14 @@ def pedidos_view(page: ft.Page):
         ),
     )
 
-    # ── Page layout envuelto en Stack para el modal ─────────────────────────
     base_content = ft.Container(
         expand=True,
         bgcolor=COLOR_BG_PAGE,
         padding=ft.Padding(32, 28, 32, 28),
         content=ft.Column(
             expand=True,
-            spacing=24,
+            # ✅ CAMBIO: spacing reducido de 24 → 14
+            spacing=14,
             controls=[
                 ft.Column(
                     spacing=4,

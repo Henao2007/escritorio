@@ -17,20 +17,11 @@ RECENT_ORDERS = [
     ("ORD-1243", "Completado", "Pedro Gómez",   "2 items • 9:30 AM",  "$ 15.000"),
 ]
 
-TOP_PRODUCTS = [
-    (1, "Almuerzo Completo", "45 unidades vendidas", "$ 540.000"),
-    (2, "Bandeja Paisa",     "32 unidades vendidas", "$ 480.000"),
-    (3, "Pollo al Horno",    "26 unidades vendidas", "$ 336.000"),
-    (4, "Carne Asada",       "25 unidades vendidas", "$ 375.000"),
-    (5, "Pescado Frito",     "18 unidades vendidas", "$ 252.000"),
-]
-
 
 # ─── Helper widgets ───────────────────────────────────────────────────────────
 
 def _stat_card(title: str, value: str, icon: str, icon_color: str,
                subtitle=None, subtitle_icon=None, subtitle_color=None):
-    """Top-row stat card (Ingresos, Pedidos, Productos)."""
     subtitle_row = []
     if subtitle:
         sub_controls = []
@@ -52,7 +43,6 @@ def _stat_card(title: str, value: str, icon: str, icon_color: str,
         content=ft.Column(
             spacing=10,
             controls=[
-                # Icon top-right row
                 ft.Row(
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     vertical_alignment=ft.CrossAxisAlignment.START,
@@ -61,9 +51,7 @@ def _stat_card(title: str, value: str, icon: str, icon_color: str,
                         ft.Icon(icon, color=icon_color, size=22),
                     ],
                 ),
-                # Big value
                 ft.Text(value, size=28, weight="bold", color=COLOR_GRAY_DARK),
-                # Subtitle / sub-row
                 *subtitle_row,
             ],
         ),
@@ -95,7 +83,6 @@ def _recent_order_row(order_id: str, status: str, client: str, meta: str, total:
         content=ft.Row(
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
             controls=[
-                # Left: ID + badge + client + meta
                 ft.Column(
                     spacing=4,
                     tight=True,
@@ -113,51 +100,13 @@ def _recent_order_row(order_id: str, status: str, client: str, meta: str, total:
                         ft.Text(meta,   size=11, color=COLOR_GRAY_TEXT),
                     ],
                 ),
-                # Right: total
                 ft.Text(total, size=14, weight="bold", color=COLOR_ORANGE_PRIMARY),
             ],
         ),
     )
 
 
-def _top_product_row(rank: int, name: str, units: str, revenue: str):
-    return ft.Container(
-        bgcolor=COLOR_BG_LIGHT,
-        border_radius=12,
-        padding=ft.Padding(14, 12, 14, 12),
-        margin=ft.Margin(0, 0, 0, 8),
-        content=ft.Row(
-            vertical_alignment=ft.CrossAxisAlignment.CENTER,
-            controls=[
-                # Rank circle
-                ft.Container(
-                    width=36,
-                    height=36,
-                    bgcolor=COLOR_ORANGE_PRIMARY,
-                    border_radius=18,
-                    alignment=ft.Alignment.CENTER,
-                    content=ft.Text(f"#{rank}", size=11, weight="bold", color="white"),
-                ),
-                ft.Container(width=12),
-                # Name + units
-                ft.Column(
-                    spacing=2,
-                    tight=True,
-                    expand=True,
-                    controls=[
-                        ft.Text(name,  size=13, weight="bold",   color=COLOR_GRAY_DARK),
-                        ft.Text(units, size=11, color=COLOR_GRAY_TEXT),
-                    ],
-                ),
-                # Revenue
-                ft.Text(revenue, size=13, weight="bold", color=COLOR_GRAY_DARK),
-            ],
-        ),
-    )
-
-
 def _status_stat(icon: str, color: str, count: str, label: str):
-    """Bottom 'Estado de Pedidos' box."""
     icon_bg = {
         COLOR_ORANGE_PRIMARY: "#FFF7ED",
         COLOR_GREEN_SUCCESS:  "#F0FDF4",
@@ -166,13 +115,12 @@ def _status_stat(icon: str, color: str, count: str, label: str):
     }.get(color, "#F9FAFB")
 
     return ft.Container(
-        expand=True,
-        bgcolor=COLOR_WHITE,
-        border_radius=16,
-        padding=ft.Padding(22, 18, 22, 18),
+        bgcolor=COLOR_BG_LIGHT,
+        border_radius=12,
+        padding=ft.Padding(16, 14, 16, 14),
         border=ft.Border.all(1, "#F3EFEA"),
         content=ft.Row(
-            spacing=16,
+            spacing=14,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
             controls=[
                 ft.Container(
@@ -199,19 +147,17 @@ def _status_stat(icon: str, color: str, count: str, label: str):
 # ─── Main view ────────────────────────────────────────────────────────────────
 
 def dashboard_view(page: ft.Page = None):
+    # ✅ Fija el fondo de toda la ventana al color crema para evitar franjas blancas
+    if page:
+        page.bgcolor = COLOR_BG_PAGE
+        page.padding = 0
+        page.update()
 
     # ── Top stat cards ────────────────────────────────────────────────────────
     top_cards = ft.Row(
         spacing=16,
         expand=True,
         controls=[
-            _stat_card(
-                "Ingresos Totales", "$ 2.850.000",
-                ft.Icons.ATTACH_MONEY_ROUNDED, COLOR_ORANGE_PRIMARY,
-                subtitle="+12.5% vs mes anterior",
-                subtitle_icon=ft.Icons.TRENDING_UP_ROUNDED,
-                subtitle_color=COLOR_GREEN_SUCCESS,
-            ),
             _stat_card(
                 "Ingresos Hoy", "$ 425.000",
                 ft.Icons.ATTACH_MONEY_ROUNDED, COLOR_GREEN_SUCCESS,
@@ -222,12 +168,6 @@ def dashboard_view(page: ft.Page = None):
                 "Pedidos Totales", "156",
                 ft.Icons.RECEIPT_LONG_OUTLINED, COLOR_BLUE_INFO,
                 subtitle="✓ 142  ◷ 8",
-                subtitle_color=COLOR_GRAY_TEXT,
-            ),
-            _stat_card(
-                "Productos Activos", "24",
-                ft.Icons.RESTAURANT_MENU_ROUNDED, COLOR_GRAY_TEXT,
-                subtitle="En menú disponible",
                 subtitle_color=COLOR_GRAY_TEXT,
             ),
         ],
@@ -250,33 +190,9 @@ def dashboard_view(page: ft.Page = None):
         ),
     )
 
-    # ── Top products panel ────────────────────────────────────────────────────
-    top_products_panel = ft.Container(
+    # ── Estado de Pedidos panel ───────────────────────────────────────────────
+    status_panel = ft.Container(
         expand=True,
-        bgcolor=COLOR_WHITE,
-        border_radius=16,
-        padding=ft.Padding(22, 20, 22, 20),
-        border=ft.Border.all(1, "#F3EFEA"),
-        content=ft.Column(
-            spacing=0,
-            controls=[
-                ft.Text("Productos Más Vendidos", size=16, weight="bold", color=COLOR_GRAY_DARK),
-                ft.Container(height=14),
-                *[_top_product_row(*p) for p in TOP_PRODUCTS],
-            ],
-        ),
-    )
-
-    # ── Middle row (orders + products side by side) ───────────────────────────
-    middle_row = ft.Row(
-        spacing=20,
-        expand=True,
-        vertical_alignment=ft.CrossAxisAlignment.START,
-        controls=[recent_orders_panel, top_products_panel],
-    )
-
-    # ── Bottom status row ─────────────────────────────────────────────────────
-    status_section = ft.Container(
         bgcolor=COLOR_WHITE,
         border_radius=16,
         padding=ft.Padding(22, 20, 22, 20),
@@ -285,17 +201,20 @@ def dashboard_view(page: ft.Page = None):
             spacing=14,
             controls=[
                 ft.Text("Estado de Pedidos", size=16, weight="bold", color=COLOR_GRAY_DARK),
-                ft.Row(
-                    spacing=16,
-                    expand=True,
-                    controls=[
-                        _status_stat(ft.Icons.SCHEDULE_OUTLINED,       COLOR_ORANGE_PRIMARY, "8",   "Pendientes"),
-                        _status_stat(ft.Icons.CHECK_CIRCLE_OUTLINE,    COLOR_GREEN_SUCCESS,  "142", "Completados"),
-                        _status_stat(ft.Icons.CANCEL_OUTLINED,         COLOR_RED_ERROR,      "6",   "Cancelados"),
-                    ],
-                ),
+                ft.Container(height=2),
+                _status_stat(ft.Icons.SCHEDULE_OUTLINED,    COLOR_ORANGE_PRIMARY, "8",   "Pendientes"),
+                _status_stat(ft.Icons.CHECK_CIRCLE_OUTLINE, COLOR_GREEN_SUCCESS,  "142", "Completados"),
+                _status_stat(ft.Icons.CANCEL_OUTLINED,      COLOR_RED_ERROR,      "6",   "Cancelados"),
             ],
         ),
+    )
+
+    # ── Middle row: pedidos recientes | estado de pedidos ────────────────────
+    middle_row = ft.Row(
+        spacing=20,
+        expand=True,
+        vertical_alignment=ft.CrossAxisAlignment.START,
+        controls=[recent_orders_panel, status_panel],
     )
 
     # ── Full page layout ──────────────────────────────────────────────────────
@@ -308,7 +227,6 @@ def dashboard_view(page: ft.Page = None):
             spacing=24,
             scroll=ft.ScrollMode.AUTO,
             controls=[
-                # Header
                 ft.Column(
                     spacing=4,
                     controls=[
@@ -320,15 +238,8 @@ def dashboard_view(page: ft.Page = None):
                         ),
                     ],
                 ),
-
-                # Top stat cards
                 top_cards,
-
-                # Middle: recent orders + top products
                 middle_row,
-
-                # Bottom: status summary
-                status_section,
             ],
         ),
     )

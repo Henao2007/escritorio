@@ -39,10 +39,6 @@ def perfil_view(page: ft.Page, change_view, handle_logout):
             "avatar_src": None,
         }
 
-    # --- (SIN FilePicker) AVATAR ---
-    # Nota: para evitar el error "Unknown control: FilePicker" en tu versión de Flet,
-    # la selección de imagen se limita por ahora a un mensaje informativo.
-
     # --- PASSWORD MODAL HELPERS ---
     def password_input(label_text, hint_text):
         return ft.Column(
@@ -448,7 +444,7 @@ def perfil_view(page: ft.Page, change_view, handle_logout):
     )
 
     # --- MAIN VIEW COMPONENTS ---
-    
+
     # header
     edit_btn = ft.Container(
         bgcolor=COLOR_ORANGE_PRIMARY,
@@ -491,16 +487,9 @@ def perfil_view(page: ft.Page, change_view, handle_logout):
                     controls=[
                         ft.Container(
                             expand=True,
-                            content=ft.Image(
-                                src=avatar_src,
-                                fit=ft.BoxFit.COVER,
-                            )
+                            content=ft.Image(src=avatar_src, fit=ft.BoxFit.COVER)
                             if avatar_src
-                            else ft.Icon(
-                                ft.Icons.PERSON,
-                                color="white",
-                                size=48,
-                            ),
+                            else ft.Icon(ft.Icons.PERSON, color="white", size=48),
                             alignment=ft.Alignment(0, 0),
                         )
                     ]
@@ -550,11 +539,7 @@ def perfil_view(page: ft.Page, change_view, handle_logout):
                         border_radius=13,
                         bgcolor=COLOR_WHITE,
                         alignment=ft.Alignment.CENTER,
-                        content=ft.Icon(
-                            ft.Icons.CAMERA_ALT_OUTLINED,
-                            size=14,
-                            color=COLOR_ORANGE_PRIMARY,
-                        ),
+                        content=ft.Icon(ft.Icons.CAMERA_ALT_OUTLINED, size=14, color=COLOR_ORANGE_PRIMARY),
                     ),
                 ],
                 width=80,
@@ -699,7 +684,7 @@ def perfil_view(page: ft.Page, change_view, handle_logout):
             border=ft.Border.all(1, "#D1D5DB"),
             border_radius=24,
             bgcolor="#E5E7EB",
-             shadow=ft.BoxShadow(
+            shadow=ft.BoxShadow(
                 blur_radius=18,
                 spread_radius=-4,
                 color="#401F2937",
@@ -721,10 +706,10 @@ def perfil_view(page: ft.Page, change_view, handle_logout):
                 spacing=22,
                 expand=True,
                 controls=[
-                            ft.Row(
-                                spacing=16,
-                                controls=[
-                                    _build_avatar(True),
+                    ft.Row(
+                        spacing=16,
+                        controls=[
+                            _build_avatar(True),
                             ft.Column(
                                 spacing=6,
                                 controls=[
@@ -750,53 +735,19 @@ def perfil_view(page: ft.Page, change_view, handle_logout):
 
     personal_card = build_personal_card(page.is_edit_mode)
 
-    activity_card = ft.Container(
-        bgcolor=COLOR_WHITE,
-        border_radius=16,
-        padding=24,
-        margin=ft.Margin.only(top=24),
-        content=ft.Column(
-            spacing=10,
-            horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
-            controls=[
-                ft.Text("Actividad Reciente", size=18, weight="bold", color=COLOR_GRAY_MEDIUM, margin=ft.Margin(bottom=8, left=0, right=0, top=0)),
-                activity_item("Pedido confirmado", "ORD-1247", "Hace 5 min"),
-                activity_item("Producto actualizado", "Bandeja Paisa", "Hace 1 hora"),
-                activity_item("Token verificado", "ABC123XYZ", "Hace 2 horas"),
-                activity_item("Reporte exportado", "Ventas semanal", "Hace 3 horas"),
-            ],
-        ),
-    )
-
+    # ── Columna izquierda: solo Información Personal ──
     left_col = ft.Column(
         col={"sm": 12, "md": 12, "lg": 8, "xl": 8},
-        controls=[personal_card, activity_card],
+        controls=[personal_card],
     )
 
-    stats_card = ft.Container(
-        expand=True,
-        bgcolor=COLOR_WHITE,
-        border_radius=16,
-        padding=24,
-        content=ft.Column(
-            spacing=12,
-            horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
-            controls=[
-                ft.Text("Estadísticas", size=18, weight="bold", color=COLOR_GRAY_MEDIUM, margin=ft.Margin(bottom=8, left=0, right=0, top=0)),
-                stat_card("Pedidos Gestionados", "156", COLOR_ORANGE_PRIMARY),
-                stat_card("Productos Activos", "24", "#10B981"),
-                stat_card("Ingresos Totales", "$2,850,000", COLOR_ORANGE_PRIMARY),
-                stat_card("Clientes Atendidos", "89", COLOR_ORANGE_PRIMARY),
-            ],
-        ),
-    )
-
+    # ── Columna derecha: solo Seguridad (sin Estadísticas) ──
     security_card = ft.Container(
         expand=True,
         bgcolor=COLOR_WHITE,
         border_radius=16,
         padding=24,
-        margin=ft.Margin.only(top=24),
+        margin=ft.Margin.only(top=0),  # alineado con personal_card
         content=ft.Column(
             spacing=12,
             horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
@@ -833,7 +784,7 @@ def perfil_view(page: ft.Page, change_view, handle_logout):
 
     right_col = ft.Column(
         col={"sm": 12, "md": 12, "lg": 4, "xl": 4},
-        controls=[stats_card, security_card],
+        controls=[security_card],
     )
 
     # Initial overlays
@@ -842,10 +793,10 @@ def perfil_view(page: ft.Page, change_view, handle_logout):
     return ft.Container(
         expand=True,
         bgcolor=COLOR_BG_PAGE,
-        padding=24,
-        content=ft.Column(
+        padding=ft.Padding(24, 24, 24, 24),
+        content=ft.ListView(
+            expand=True,
             spacing=24,
-            scroll=ft.ScrollMode.AUTO,
             controls=[
                 header,
                 ft.ResponsiveRow(
