@@ -1,3 +1,6 @@
+import threading
+import tkinter as tk
+from tkinter import filedialog
 import flet as ft
 from views.styles import (
     COLOR_ORANGE_PRIMARY,
@@ -19,63 +22,27 @@ from views.styles import (
     show_toast,
 )
 
-# ─── Sample product data (will be replaced by DB later) ───────────────────────
-SAMPLE_PRODUCTS = [
-    {
-        "id": 1,
-        "name": "Almuerzo Ejecutivo",
-        "description": "Incluye arroz, carne de res a la plancha, ensalada fresca y bebida natural",
-        "price": "$ 8.600",
-        "category": "specialty",
-        "image": "img/comida1.jpg",
-        "available": True,
-    },
-    {
-        "id": 2,
-        "name": "Almuerzo Especial Pollo",
-        "description": "Incluye arroz, pollo a la plancha marinado, ensalada fresca y bebida natural",
-        "price": "$ 8.600",
-        "category": "specialty",
-        "image": "img/comida2.jpg",
-        "available": True,
-    },
-    {
-        "id": 3,
-        "name": "Almuerzo Especial Pescado",
-        "description": "Incluye arroz, filete de pescado al horno, ensalada fresca y bebida natural",
-        "price": "$ 9.500",
-        "category": "specialty",
-        "image": "img/comida1.jpg",
-        "available": True,
-    },
-    {
-        "id": 4,
-        "name": "Bandeja Paisa",
-        "description": "Frijoles, arroz, chicharrón, carne molida, chorizo, arepa y huevo",
-        "price": "$ 12.000",
-        "category": "specialty",
-        "image": "img/comida2.jpg",
-        "available": False,
-    },
-    {
-        "id": 5,
-        "name": "Sopa del Día",
-        "description": "Sopa tradicional colombiana con verduras frescas y proteína del día",
-        "price": "$ 6.500",
-        "category": "specialty",
-        "image": "img/comida1.jpg",
-        "available": True,
-    },
-    {
-        "id": 6,
-        "name": "Jugo Natural",
-        "description": "Jugo de fruta de temporada preparado al momento con agua o leche",
-        "price": "$ 3.000",
-        "category": "specialty",
-        "image": "img/comida2.jpg",
-        "available": True,
-    },
-]
+# ─── Sample product data ──────────────────────────────────────────────────────
+
+# ─── Abrir explorador de archivos con tkinter ─────────────────────────────────
+def open_file_dialog(callback):
+    """Abre el explorador de Windows en un hilo separado y llama callback con la ruta."""
+    def _run():
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+        path = filedialog.askopenfilename(
+            title="Seleccionar imagen",
+            filetypes=[
+                ("Imágenes", "*.jpg *.jpeg *.png *.webp *.gif"),
+                ("Todos los archivos", "*.*"),
+            ],
+        )
+        root.destroy()
+        if path:
+            callback(path)
+
+    threading.Thread(target=_run, daemon=True).start()
 
 
 # ─── Availability badge ───────────────────────────────────────────────────────
@@ -123,7 +90,6 @@ def _product_card(product: dict, on_edit, on_delete, on_toggle):
         content=ft.Column(
             spacing=0,
             controls=[
-                # Image + availability badge
                 ft.Stack(
                     height=185,
                     controls=[
@@ -146,13 +112,11 @@ def _product_card(product: dict, on_edit, on_delete, on_toggle):
                         ),
                     ],
                 ),
-                # Card body
                 ft.Container(
                     padding=ft.Padding(16, 14, 16, 14),
                     content=ft.Column(
                         spacing=8,
                         controls=[
-                            # Category badge
                             ft.Container(
                                 bgcolor=COLOR_ORANGE_LIGHT,
                                 border_radius=6,
@@ -163,7 +127,6 @@ def _product_card(product: dict, on_edit, on_delete, on_toggle):
                                     color=COLOR_ORANGE_PRIMARY,
                                 ),
                             ),
-                            # Name
                             ft.Text(
                                 product["name"],
                                 size=15, weight="bold",
@@ -171,14 +134,12 @@ def _product_card(product: dict, on_edit, on_delete, on_toggle):
                                 max_lines=1,
                                 overflow=ft.TextOverflow.ELLIPSIS,
                             ),
-                            # Description
                             ft.Text(
                                 product["description"],
                                 size=12, color=COLOR_GRAY_TEXT,
                                 max_lines=2,
                                 overflow=ft.TextOverflow.ELLIPSIS,
                             ),
-                            # Price + action buttons
                             ft.Row(
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                                 vertical_alignment=ft.CrossAxisAlignment.CENTER,
@@ -191,7 +152,6 @@ def _product_card(product: dict, on_edit, on_delete, on_toggle):
                                     ft.Row(
                                         spacing=6,
                                         controls=[
-                                            # Edit
                                             ft.Container(
                                                 width=34, height=34,
                                                 bgcolor=COLOR_BLUE_LIGHT,
@@ -204,7 +164,6 @@ def _product_card(product: dict, on_edit, on_delete, on_toggle):
                                                     size=16, color=COLOR_BLUE_INFO,
                                                 ),
                                             ),
-                                            # Delete
                                             ft.Container(
                                                 width=34, height=34,
                                                 bgcolor=COLOR_RED_LIGHT,
@@ -231,7 +190,7 @@ def _product_card(product: dict, on_edit, on_delete, on_toggle):
 
 # ─── Field builder ────────────────────────────────────────────────────────────
 def _field(hint: str, value: str = "", multiline=False, min_lines=3, max_lines=4,
-           ref=None):
+           ref=None, input_filter=None):
     return ft.TextField(
         value=value,
         hint_text=hint,
@@ -247,23 +206,21 @@ def _field(hint: str, value: str = "", multiline=False, min_lines=3, max_lines=4
         hint_style=ft.TextStyle(color=COLOR_GRAY_TEXT),
         ref=ref,
         expand=True,
+        input_filter=input_filter,
     )
 
 
-# ─── Modal shared structure ──────────────────────────────────────────────────
+# ─── Modal shared structure ───────────────────────────────────────────────────
 def _modal_shell(title: str, subtitle: str, body_controls,
-                  actions, on_close, icon=None, icon_color=None):
-    """Centered white card dialog with blurred backdrop."""
+                 actions, on_close, icon=None, icon_color=None):
     return ft.Stack(
         expand=True,
         controls=[
-            # Backdrop
             ft.Container(
                 expand=True,
                 bgcolor="#80000000",
                 on_click=on_close,
             ),
-            # Centered dialog
             ft.Container(
                 alignment=ft.Alignment.CENTER,
                 expand=True,
@@ -276,13 +233,10 @@ def _modal_shell(title: str, subtitle: str, body_controls,
                         blur_radius=40, spread_radius=0,
                         color="#50000000", offset=ft.Offset(0, 16),
                     ),
-                    animate_scale=ft.Animation(300, ft.AnimationCurve.EASE_OUT_BACK),
-                    scale=ft.Scale(1.0),
                     content=ft.Column(
                         spacing=20,
                         tight=True,
                         controls=[
-                            # Title row
                             ft.Row(
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                                 vertical_alignment=ft.CrossAxisAlignment.START,
@@ -316,13 +270,11 @@ def _modal_shell(title: str, subtitle: str, body_controls,
                                     ),
                                 ],
                             ),
-                            # Body
                             ft.Column(
                                 spacing=14,
                                 tight=True,
                                 controls=body_controls,
                             ),
-                            # Actions
                             ft.Row(
                                 spacing=12,
                                 controls=actions,
@@ -337,9 +289,8 @@ def _modal_shell(title: str, subtitle: str, body_controls,
 
 # ─── Main view ────────────────────────────────────────────────────────────────
 def productos_view(page: ft.Page):
-    products = list(SAMPLE_PRODUCTS)  # mutable local list (will hit DB later)
+    products = list()
 
-    # ── Refs para la grilla ────────────────────────────────────────────────────
     grid_ref    = ft.Ref[ft.Row]()
     modal_layer = ft.Ref[ft.Stack]()
 
@@ -367,32 +318,28 @@ def productos_view(page: ft.Page):
 
     # ── Toggle availability ────────────────────────────────────────────────────
     def toggle_avail(product: dict):
-        # Alterna el estado disponible / no disponible y solo refresca la grilla
-        # (se evita usar `show_toast` aquí para no provocar errores de control
-        # no adjunto en algunas versiones de Flet).
         product["available"] = not product["available"]
         refresh_grid()
 
-    # ── CREATE modal ──────────────────────────────────────────────────────────
+    # ── CREATE modal ───────────────────────────────────────────────────────────
     def open_create_modal(e=None):
         f_name  = ft.Ref[ft.TextField]()
         f_desc  = ft.Ref[ft.TextField]()
         f_price = ft.Ref[ft.TextField]()
-        f_cat   = ft.Ref[ft.TextField]()
+        f_stock = ft.Ref[ft.TextField]()
         f_img   = ft.Ref[ft.TextField]()
 
+        def on_image_picked(path: str):
+            f_img.current.value = path
+            f_img.current.update()
+
         def open_img_picker(ev):
-            # Mensaje informativo: escribe la ruta manualmente
-            show_toast(
-                page,
-                "Escribe la ruta de la imagen en el campo de texto.\nEj: img/comida1.jpg",
-                "Agregar imagen",
-                type="info",
-            )
+            open_file_dialog(on_image_picked)
 
         def do_create(e=None):
             name  = f_name.current.value.strip()
             price = f_price.current.value.strip()
+            stock = f_stock.current.value.strip()
             if not name or not price:
                 return
             new_id = max((p["id"] for p in products), default=0) + 1
@@ -401,7 +348,8 @@ def productos_view(page: ft.Page):
                 "name": name,
                 "description": f_desc.current.value.strip() or "Sin descripción",
                 "price": f"$ {price}",
-                "category": f_cat.current.value.strip() or "specialty",
+                "category": "specialty",
+                "stock": int(stock) if stock.isdigit() else 0,
                 "image": f_img.current.value.strip() or "img/comida1.jpg",
                 "available": True,
             })
@@ -427,46 +375,34 @@ def productos_view(page: ft.Page):
                     ft.Column([
                         ft.Text("Precio (COP) *", size=12, weight="bold",
                                 color=COLOR_GRAY_DARK),
-                        _field("12000", ref=f_price),
+                        _field("12000", ref=f_price,
+                               input_filter=ft.NumbersOnlyInputFilter()),
                     ], spacing=6, tight=True, expand=True),
                     ft.Column([
-                        ft.Text("Categoría *", size=12, weight="bold",
+                        ft.Text("Stock *", size=12, weight="bold",
                                 color=COLOR_GRAY_DARK),
-                        _field("specialty", ref=f_cat),
+                        _field("0", ref=f_stock,
+                               input_filter=ft.NumbersOnlyInputFilter()),
                     ], spacing=6, tight=True, expand=True),
                 ], spacing=12),
-                ft.Column(
-                    [
-                        ft.Text(
-                            "Imagen del producto",
-                            size=12,
-                            weight="bold",
-                            color=COLOR_GRAY_DARK,
+                ft.Column([
+                    ft.Text("Imagen del producto", size=12, weight="bold",
+                            color=COLOR_GRAY_DARK),
+                    _field("img/comida1.jpg", ref=f_img, value=""),
+                    ft.Container(
+                        on_click=open_img_picker,
+                        content=ft.Row(
+                            spacing=6,
+                            controls=[
+                                ft.Icon(ft.Icons.IMAGE_OUTLINED, size=16,
+                                        color=COLOR_ORANGE_PRIMARY),
+                                ft.Text("Subir imagen desde tu dispositivo",
+                                        size=12, color=COLOR_ORANGE_PRIMARY,
+                                        weight="bold"),
+                            ],
                         ),
-                        _field("img/comida1.jpg", ref=f_img, value=""),
-                        ft.Container(
-                            on_click=open_img_picker,
-                            content=ft.Row(
-                                [
-                                    ft.Icon(
-                                        ft.Icons.IMAGE_OUTLINED,
-                                        size=16,
-                                        color=COLOR_ORANGE_PRIMARY,
-                                    ),
-                                    ft.Text(
-                                        "Subir imagen desde tu dispositivo",
-                                        size=12,
-                                        color=COLOR_ORANGE_PRIMARY,
-                                        weight="bold",
-                                    ),
-                                ],
-                                spacing=6,
-                            ),
-                        ),
-                    ],
-                    spacing=6,
-                    tight=True,
-                ),
+                    ),
+                ], spacing=6, tight=True),
             ],
             actions=[
                 ft.Container(
@@ -503,17 +439,18 @@ def productos_view(page: ft.Page):
         modal_layer.current.controls = modal_layer.current.controls[:1] + [modal]
         modal_layer.current.update()
 
-    # ── EDIT modal ────────────────────────────────────────────────────────────
+    # ── EDIT modal ─────────────────────────────────────────────────────────────
     def open_edit_modal(product: dict):
         f_name  = ft.Ref[ft.TextField]()
         f_desc  = ft.Ref[ft.TextField]()
         f_price = ft.Ref[ft.TextField]()
-        f_cat   = ft.Ref[ft.TextField]()
+        f_stock = ft.Ref[ft.TextField]()
         f_img   = ft.Ref[ft.TextField]()
         preview = ft.Ref[ft.Image]()
         prev_container = ft.Ref[ft.Container]()
 
         raw_price = product["price"].replace("$ ", "").replace(".", "")
+        raw_stock = str(product.get("stock", 0))
 
         def on_url_change(e):
             url = e.control.value.strip()
@@ -522,27 +459,28 @@ def productos_view(page: ft.Page):
                 preview.current.src = url
                 prev_container.current.update()
 
+        def on_image_picked_edit(path: str):
+            f_img.current.value = path
+            f_img.current.update()
+            if prev_container.current:
+                prev_container.current.visible = True
+                preview.current.src = path
+                prev_container.current.update()
+
         def open_img_picker_edit(ev):
-            # Mensaje informativo: escribe o pega la URL manualmente
-            show_toast(
-                page,
-                "Pega la URL de la imagen o escribe la ruta local en el campo de texto.",
-                "Cambiar imagen",
-                type="info",
-            )
+            open_file_dialog(on_image_picked_edit)
 
         def do_update(e=None):
-            product["name"]        = f_name.current.value.strip()  or product["name"]
-            product["description"] = f_desc.current.value.strip()  or product["description"]
+            product["name"]        = f_name.current.value.strip() or product["name"]
+            product["description"] = f_desc.current.value.strip() or product["description"]
             product["price"]       = f"$ {f_price.current.value.strip()}" or product["price"]
-            product["category"]    = f_cat.current.value.strip()   or product["category"]
+            stock_val = f_stock.current.value.strip()
+            product["stock"]       = int(stock_val) if stock_val.isdigit() else product.get("stock", 0)
             new_img = f_img.current.value.strip()
             if new_img:
                 product["image"] = new_img
             close_modal()
             refresh_grid()
-
-        preview_img_url = product["image"]
 
         modal = _modal_shell(
             title="Editar Producto",
@@ -564,20 +502,22 @@ def productos_view(page: ft.Page):
                     ft.Column([
                         ft.Text("Precio (COP) *", size=12, weight="bold",
                                 color=COLOR_GRAY_DARK),
-                        _field("Precio", value=raw_price, ref=f_price),
+                        _field("Precio", value=raw_price, ref=f_price,
+                               input_filter=ft.NumbersOnlyInputFilter()),
                     ], spacing=6, tight=True, expand=True),
                     ft.Column([
-                        ft.Text("Categoría *", size=12, weight="bold",
+                        ft.Text("Stock *", size=12, weight="bold",
                                 color=COLOR_GRAY_DARK),
-                        _field("specialty", value=product["category"], ref=f_cat),
+                        _field("0", value=raw_stock, ref=f_stock,
+                               input_filter=ft.NumbersOnlyInputFilter()),
                     ], spacing=6, tight=True, expand=True),
                 ], spacing=12),
                 ft.Column([
-                    ft.Text("URL de Imagen", size=12, weight="bold",
+                    ft.Text("Imagen del producto", size=12, weight="bold",
                             color=COLOR_GRAY_DARK),
                     ft.TextField(
-                        value=preview_img_url,
-                        hint_text="https://...",
+                        value=product["image"],
+                        hint_text="Ruta o URL de la imagen",
                         border=ft.InputBorder.OUTLINE,
                         border_color=COLOR_GRAY_BORDER,
                         focused_border_color=COLOR_ORANGE_PRIMARY,
@@ -592,23 +532,16 @@ def productos_view(page: ft.Page):
                     ft.Container(
                         on_click=open_img_picker_edit,
                         content=ft.Row(
-                            [
-                                ft.Icon(
-                                    ft.Icons.IMAGE_OUTLINED,
-                                    size=16,
-                                    color=COLOR_ORANGE_PRIMARY,
-                                ),
-                                ft.Text(
-                                    "Subir imagen desde tu dispositivo",
-                                    size=12,
-                                    color=COLOR_ORANGE_PRIMARY,
-                                    weight="bold",
-                                ),
-                            ],
                             spacing=6,
+                            controls=[
+                                ft.Icon(ft.Icons.IMAGE_OUTLINED, size=16,
+                                        color=COLOR_ORANGE_PRIMARY),
+                                ft.Text("Subir imagen desde tu dispositivo",
+                                        size=12, color=COLOR_ORANGE_PRIMARY,
+                                        weight="bold"),
+                            ],
                         ),
                     ),
-                    # Image preview
                     ft.Container(
                         ref=prev_container,
                         visible=True,
@@ -617,7 +550,7 @@ def productos_view(page: ft.Page):
                         height=140,
                         content=ft.Image(
                             ref=preview,
-                            src=preview_img_url,
+                            src=product["image"],
                             fit=ft.BoxFit.COVER,
                             width=476,
                         ),
@@ -659,7 +592,7 @@ def productos_view(page: ft.Page):
         modal_layer.current.controls = modal_layer.current.controls[:1] + [modal]
         modal_layer.current.update()
 
-    # ── DELETE modal ──────────────────────────────────────────────────────────
+    # ── DELETE modal ───────────────────────────────────────────────────────────
     def open_delete_modal(product: dict):
         def do_delete(e=None):
             products.remove(product)
@@ -673,7 +606,6 @@ def productos_view(page: ft.Page):
             icon_color=COLOR_RED_ERROR,
             on_close=close_modal,
             body_controls=[
-                # Product preview card inside delete modal
                 ft.Container(
                     bgcolor=COLOR_BG_LIGHT,
                     border_radius=14,
@@ -762,7 +694,7 @@ def productos_view(page: ft.Page):
         modal_layer.current.controls = modal_layer.current.controls[:1] + [modal]
         modal_layer.current.update()
 
-    # ── Product grid ──────────────────────────────────────────────────────────
+    # ── Product grid ───────────────────────────────────────────────────────────
     products_grid = ft.Row(
         ref=grid_ref,
         wrap=True,
@@ -774,7 +706,7 @@ def productos_view(page: ft.Page):
         ],
     )
 
-    # ── Page skeleton ─────────────────────────────────────────────────────────
+    # ── Page skeleton ──────────────────────────────────────────────────────────
     page_content = ft.Container(
         expand=True,
         bgcolor=COLOR_BG_PAGE,
@@ -784,7 +716,6 @@ def productos_view(page: ft.Page):
             spacing=24,
             scroll=ft.ScrollMode.AUTO,
             controls=[
-                # Header
                 ft.Row(
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,
@@ -808,8 +739,7 @@ def productos_view(page: ft.Page):
                                 spacing=8,
                                 tight=True,
                                 controls=[
-                                    ft.Icon(ft.Icons.ADD_ROUNDED,
-                                            color="white", size=18),
+                                    ft.Icon(ft.Icons.ADD_ROUNDED, color="white", size=18),
                                     ft.Text("Nuevo Producto", size=14,
                                             weight="bold", color="white"),
                                 ],
@@ -817,15 +747,14 @@ def productos_view(page: ft.Page):
                         ),
                     ],
                 ),
-
-                # Search bar
                 ft.Container(
                     bgcolor=COLOR_WHITE,
                     border_radius=12,
                     border=ft.Border.all(1, COLOR_GRAY_BORDER),
                     padding=ft.Padding(16, 0, 16, 0),
                     content=ft.Row(
-                        [
+                        spacing=10,
+                        controls=[
                             ft.Icon(ft.Icons.SEARCH_ROUNDED,
                                     color=COLOR_GRAY_TEXT, size=20),
                             ft.TextField(
@@ -838,17 +767,13 @@ def productos_view(page: ft.Page):
                                 on_change=on_search,
                             ),
                         ],
-                        spacing=10,
                     ),
                 ),
-
-                # Product cards grid
                 products_grid,
             ],
         ),
     )
 
-    # ── Stack: page + modal layer ─────────────────────────────────────────────
     return ft.Stack(
         ref=modal_layer,
         expand=True,
