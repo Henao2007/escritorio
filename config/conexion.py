@@ -5,7 +5,7 @@ def conectar():
         return psycopg2.connect(
             host="localhost",
             user="postgres",
-            password="Mortadela705",
+            password="Diana990626",
             database="sena_food",
             port="5432"
         )
