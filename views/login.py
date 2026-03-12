@@ -47,22 +47,32 @@ def login_view(page, go_register, go_dashboard):
     )
 
     # ----------------------------
-    # Función Login (MVC real)
+    # Función Login — DENTRO de login_view
     # ----------------------------
 
     def login(e):
-        usuario = email.value
+        usuario_email = email.value
         clave = password.value
 
-        resultado = controller.login(usuario, clave)
+        resultado = controller.login(usuario_email, clave)
+        print(f">>> [LOGIN] resultado: {resultado}")
 
         if resultado["status"] == "success":
-            # Flet session es un objeto; guardamos un atributo
-            setattr(page.session, "user", usuario)
+            print(f">>> [LOGIN] usuario retornado: {resultado['usuario']}")
+            page.usuario_id = resultado["usuario"]["id"]
+            page.profile_data = {
+                "id":                 resultado["usuario"]["id"],
+                "name":               resultado["usuario"]["nombre"],
+                "role":               resultado["usuario"]["rol"],
+                "email":              resultado["usuario"]["email"],
+                "phone":              "",
+                "member_since":       "",
+                "verification_token": "123456",
+                "avatar_src":         None,
+            }
             go_dashboard()
         else:
-            # Mostrar mensaje de error debajo de "Ingresa tus credenciales"
-            error_text.value = "Correo o contraseña incorrectos"
+            error_text.value = resultado["message"]
             page.update()
 
     # ----------------------------
@@ -166,9 +176,7 @@ def login_view(page, go_register, go_dashboard):
                                     style=ft.ButtonStyle(
                                         bgcolor="#F97316",
                                         color="white",
-                                        shape=ft.RoundedRectangleBorder(
-                                            radius=12
-                                        ),
+                                        shape=ft.RoundedRectangleBorder(radius=12),
                                     ),
                                     on_click=login,
                                 ),
