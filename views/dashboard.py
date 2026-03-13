@@ -7,15 +7,7 @@ from views.styles import (
     COLOR_GRAY_DARK, COLOR_GRAY_MEDIUM, COLOR_GRAY_TEXT,
     COLOR_GRAY_BORDER, COLOR_BG_PAGE, COLOR_BG_LIGHT, COLOR_WHITE,
 )
-
-# ─── Sample data ──────────────────────────────────────────────────────────────
-RECENT_ORDERS = [
-    ("ORD-1247", "Pendiente",  "Juan Pérez",    "2 items • 10:30 AM", "$ 18.500"),
-    ("ORD-1246", "Completado", "María García",  "1 items • 10:15 AM", "$ 12.000"),
-    ("ORD-1245", "Completado", "Carlos Ruiz",   "3 items • 10:00 AM", "$ 24.500"),
-    ("ORD-1244", "Pendiente",  "Ana López",     "1 items • 9:45 AM",  "$ 9.500"),
-    ("ORD-1243", "Completado", "Pedro Gómez",   "2 items • 9:30 AM",  "$ 15.000"),
-]
+from controllers.dashboard import DashboardController
 
 
 # ─── Helper widgets ───────────────────────────────────────────────────────────
@@ -84,13 +76,10 @@ def _recent_order_row(order_id: str, status: str, client: str, meta: str, total:
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
             controls=[
                 ft.Column(
-                    spacing=4,
-                    tight=True,
-                    expand=True,
+                    spacing=4, tight=True, expand=True,
                     controls=[
                         ft.Row(
-                            spacing=8,
-                            tight=True,
+                            spacing=8, tight=True,
                             controls=[
                                 ft.Text(order_id, size=13, weight="bold", color=COLOR_GRAY_DARK),
                                 _order_badge(status),
@@ -124,16 +113,12 @@ def _status_stat(icon: str, color: str, count: str, label: str):
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
             controls=[
                 ft.Container(
-                    width=46,
-                    height=46,
-                    bgcolor=icon_bg,
-                    border_radius=23,
-                    alignment=ft.Alignment.CENTER,
+                    width=46, height=46, bgcolor=icon_bg,
+                    border_radius=23, alignment=ft.Alignment.CENTER,
                     content=ft.Icon(icon, color=color, size=22),
                 ),
                 ft.Column(
-                    spacing=2,
-                    tight=True,
+                    spacing=2, tight=True,
                     controls=[
                         ft.Text(count, size=26, weight="bold", color=COLOR_GRAY_DARK),
                         ft.Text(label, size=13, color=COLOR_GRAY_TEXT),
@@ -147,33 +132,76 @@ def _status_stat(icon: str, color: str, count: str, label: str):
 # ─── Main view ────────────────────────────────────────────────────────────────
 
 def dashboard_view(page: ft.Page = None):
-    # ✅ Fija el fondo de toda la ventana al color crema para evitar franjas blancas
     if page:
         page.bgcolor = COLOR_BG_PAGE
         page.padding = 0
         page.update()
 
-    # ── Top stat cards ────────────────────────────────────────────────────────
+    # ── Cargar datos reales desde la BD ──────────────────────────────
+    ok, msg = DashboardController.cargar_dashboard(page)
+    if not ok:
+        print(f"[dashboard_view] {msg}")
+        page.dashboard_data = {
+            "ingresos_hoy":      0.0,
+            "contadores":        {"total": 0, "pendiente": 0, "completado": 0, "cancelado": 0, "confirmado": 0},
+            "pedidos_recientes": [],
+        }
+
+    data       = getattr(page, "dashboard_data", {})
+    contadores = data.get("contadores", {})
+    recientes  = data.get("pedidos_recientes", [])
+    ingresos   = data.get("ingresos_hoy", 0.0)
+
+    # ── Formatear ingresos ────────────────────────────────────────────
+    ingresos_fmt = f"$ {ingresos:,.0f}".replace(",", ".")
+
+    # ── Subtítulo de pedidos totales ──────────────────────────────────
+    total       = contadores.get("total", 0)
+    completados = contadores.get("completado", 0)
+    pendientes  = contadores.get("pendiente", 0)
+    cancelados  = contadores.get("cancelado", 0)
+    subtitulo_pedidos = f"✓ {completados}  ◷ {pendientes}"
+
+    # ── Top stat cards ────────────────────────────────────────────────
     top_cards = ft.Row(
-        spacing=16,
-        expand=True,
+        spacing=16, expand=True,
         controls=[
             _stat_card(
-                "Ingresos Hoy", "$ 425.000",
+                "Ingresos Hoy", ingresos_fmt,
                 ft.Icons.ATTACH_MONEY_ROUNDED, COLOR_GREEN_SUCCESS,
                 subtitle="Última actualización: ahora",
                 subtitle_color=COLOR_GRAY_TEXT,
             ),
             _stat_card(
-                "Pedidos Totales", "156",
+                "Pedidos Totales", str(total),
                 ft.Icons.RECEIPT_LONG_OUTLINED, COLOR_BLUE_INFO,
-                subtitle="✓ 142  ◷ 8",
+                subtitle=subtitulo_pedidos,
                 subtitle_color=COLOR_GRAY_TEXT,
             ),
         ],
     )
 
-    # ── Recent orders panel ───────────────────────────────────────────────────
+    # ── Pedidos recientes desde la BD ────────────────────────────────
+    def _build_recent_rows():
+        rows = []
+        for p in recientes:
+            estado_raw = (p.get("estado") or "pendiente").lower()
+            estado_ui  = estado_raw.capitalize()
+            num_items  = int(p.get("num_items") or 0)
+            hora       = p.get("hora") or ""
+            meta       = f"{num_items} item{'s' if num_items != 1 else ''} • {hora}"
+            total_fmt  = f"$ {float(p.get('total') or 0):,.0f}".replace(",", ".")
+            rows.append(_recent_order_row(
+                p.get("codigo", ""),
+                estado_ui,
+                p.get("cliente_nombre", ""),
+                meta,
+                total_fmt,
+            ))
+        if not rows:
+            rows.append(ft.Text("Sin pedidos recientes", size=13, color=COLOR_GRAY_TEXT))
+        return rows
+
     recent_orders_panel = ft.Container(
         expand=True,
         bgcolor=COLOR_WHITE,
@@ -185,12 +213,12 @@ def dashboard_view(page: ft.Page = None):
             controls=[
                 ft.Text("Pedidos Recientes", size=16, weight="bold", color=COLOR_GRAY_DARK),
                 ft.Container(height=14),
-                *[_recent_order_row(*o) for o in RECENT_ORDERS],
+                *_build_recent_rows(),
             ],
         ),
     )
 
-    # ── Estado de Pedidos panel ───────────────────────────────────────────────
+    # ── Estado de pedidos desde la BD ────────────────────────────────
     status_panel = ft.Container(
         expand=True,
         bgcolor=COLOR_WHITE,
@@ -202,42 +230,34 @@ def dashboard_view(page: ft.Page = None):
             controls=[
                 ft.Text("Estado de Pedidos", size=16, weight="bold", color=COLOR_GRAY_DARK),
                 ft.Container(height=2),
-                _status_stat(ft.Icons.SCHEDULE_OUTLINED,    COLOR_ORANGE_PRIMARY, "8",   "Pendientes"),
-                _status_stat(ft.Icons.CHECK_CIRCLE_OUTLINE, COLOR_GREEN_SUCCESS,  "142", "Completados"),
-                _status_stat(ft.Icons.CANCEL_OUTLINED,      COLOR_RED_ERROR,      "6",   "Cancelados"),
+                _status_stat(ft.Icons.SCHEDULE_OUTLINED,    COLOR_ORANGE_PRIMARY, str(pendientes),  "Pendientes"),
+                _status_stat(ft.Icons.CHECK_CIRCLE_OUTLINE, COLOR_GREEN_SUCCESS,  str(completados), "Completados"),
+                _status_stat(ft.Icons.CANCEL_OUTLINED,      COLOR_RED_ERROR,      str(cancelados),  "Cancelados"),
             ],
         ),
     )
 
-    # ── Middle row: pedidos recientes | estado de pedidos ────────────────────
     middle_row = ft.Row(
-        spacing=20,
-        expand=True,
+        spacing=20, expand=True,
         vertical_alignment=ft.CrossAxisAlignment.START,
         controls=[recent_orders_panel, status_panel],
     )
 
-    # ── Full page layout ──────────────────────────────────────────────────────
     return ft.Container(
         expand=True,
         bgcolor=COLOR_BG_PAGE,
         padding=ft.Padding(32, 28, 32, 28),
         content=ft.Column(
-            expand=True,
-            spacing=24,
+            expand=True, spacing=24,
             scroll=ft.ScrollMode.AUTO,
             controls=[
-                ft.Column(
-                    spacing=4,
-                    controls=[
-                        ft.Text("Dashboard", size=26, weight="bold", color=COLOR_GRAY_DARK),
-                        ft.Text(
-                            "Bienvenido al panel de administración de SENA FOOD",
-                            size=14,
-                            color=COLOR_GRAY_TEXT,
-                        ),
-                    ],
-                ),
+                ft.Column(spacing=4, controls=[
+                    ft.Text("Dashboard", size=26, weight="bold", color=COLOR_GRAY_DARK),
+                    ft.Text(
+                        "Bienvenido al panel de administración de SENA FOOD",
+                        size=14, color=COLOR_GRAY_TEXT,
+                    ),
+                ]),
                 top_cards,
                 middle_row,
             ],
