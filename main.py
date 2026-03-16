@@ -1,7 +1,9 @@
 import flet as ft
 
 from views.login import login_view
-from views.register import register_view
+from views.forgot_password import forgot_password_view
+from views.verify_code import verify_code_view
+from views.reset_password import reset_password_view
 from layout import app_layout
 
 
@@ -12,11 +14,19 @@ def main(page: ft.Page):
 
     def show_login():
         page.clean()
-        page.add(login_view(page, show_register, show_app))
+        page.add(login_view(page, show_forgot_password, show_app, show_forgot_password))
 
-    def show_register():
+    def show_forgot_password():
         page.clean()
-        page.add(register_view(page, show_login))
+        page.add(forgot_password_view(page, show_login, show_verify_code))
+
+    def show_verify_code():
+        page.clean()
+        page.add(verify_code_view(page, show_login, show_reset_password))
+
+    def show_reset_password():
+        page.clean()
+        page.add(reset_password_view(page, show_login))
 
     def show_app():
         page.clean()

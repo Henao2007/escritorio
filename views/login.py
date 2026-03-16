@@ -2,7 +2,7 @@ import flet as ft
 from controllers.login import AdminController
 
 
-def login_view(page, go_register, go_dashboard):
+def login_view(page, go_register, go_dashboard, go_forgot_password):
     """Vista de inicio de sesión principal para escritorio."""
 
     controller = AdminController()
@@ -25,7 +25,7 @@ def login_view(page, go_register, go_dashboard):
         hint_style=ft.TextStyle(color="#9CA3AF", size=13),
         text_style=ft.TextStyle(size=14, color="#111827"),
         content_padding=15,
-        width=320,
+        width=360,
         height=50,
     )
 
@@ -42,7 +42,7 @@ def login_view(page, go_register, go_dashboard):
         hint_style=ft.TextStyle(color="#9CA3AF", size=13),
         text_style=ft.TextStyle(size=14, color="#111827"),
         content_padding=15,
-        width=320,
+        width=360,
         height=50,
     )
 
@@ -89,8 +89,8 @@ def login_view(page, go_register, go_dashboard):
             spacing=20,
             controls=[
                 ft.Container(
-                    width=220,
-                    height=220,
+                    width=380,
+                    height=380,
                     bgcolor="white",
                     border_radius=30,
                     shadow=ft.BoxShadow(
@@ -102,8 +102,8 @@ def login_view(page, go_register, go_dashboard):
                     alignment=ft.Alignment(0, 0),
                     content=ft.Image(
                         src="img/logo.png",
-                        width=160,
-                        height=160,
+                        width=320,
+                        height=320,
                         fit="contain",
                     ),
                 ),
@@ -167,11 +167,11 @@ def login_view(page, go_register, go_dashboard):
                             ),
                             error_text,
                             ft.Container(
-                                width=320,
-                                margin=ft.margin.only(top=10),
-                                content=ft.ElevatedButton(
+                                width=360,
+                                margin=ft.Margin(left=0, top=10, right=0, bottom=0),
+                                content=ft.FilledButton(
                                     "Continuar",
-                                    width=320,
+                                    width=360,
                                     height=48,
                                     style=ft.ButtonStyle(
                                         bgcolor="#F97316",
@@ -186,7 +186,7 @@ def login_view(page, go_register, go_dashboard):
                 ),
                 ft.TextButton(
                     "¿Olvidaste tu contraseña?",
-                    on_click=lambda e: go_register(),
+                    on_click=lambda e: go_forgot_password(),
                     style=ft.ButtonStyle(color="#6B7280"),
                 ),
             ],

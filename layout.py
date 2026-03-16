@@ -39,7 +39,7 @@ def app_layout(page: ft.Page, logout):
 
     # sidebar and logo references for resizing
     # Logo ligeramente más grande para mayor presencia visual
-    logo_img = ft.Image(src="img/logo.png", width=140, height=140, fit="contain")
+    logo_img = ft.Image(src="img/logo.png", width=180, height=180, fit="contain")
     sidebar_container = ft.Container(
         width=240,
         bgcolor=COLOR_BG_SIDEBAR,
@@ -152,7 +152,7 @@ def app_layout(page: ft.Page, logout):
         new_sw = max(220, min(300, int(w * 0.22)))
         sidebar_container.width = new_sw
         # El logo ocupa un poco más del ancho de la barra
-        logo_img.width = logo_img.height = int(new_sw * 0.6)
+        logo_img.width = logo_img.height = int(new_sw * 0.85)
         try:
             sidebar_container.update()
             logo_img.update()

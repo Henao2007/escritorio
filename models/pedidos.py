@@ -229,10 +229,10 @@ class PedidosModel:
             INNER JOIN usuarios u ON u.id = p.usuario_id
             LEFT  JOIN tokens_pedido tp ON tp.pedido_id = p.id
             WHERE
-                p.id::TEXT          ILIKE %s
-                OR u.nombre          ILIKE %s
-                OR u.numero_documento ILIKE %s
-                OR tp.token           ILIKE %s
+                p.id::TEXT           ILIKE %s
+                OR u.nombre           ILIKE %s
+                OR u.numero_documento  ILIKE %s
+                OR tp.token            ILIKE %s
             ORDER BY p.fecha DESC
         """
         conn = conectar()
